@@ -15,16 +15,17 @@ CAP = 1000
 # 0  1  2  3  4  5  6  7
 # WHITE
 
-# notable squares for pieces --- each key represents a really good or really bad square -- mapped to its value
+# notable squares for pieces --- key: score --- value: squares 
 # knights/bishops/queens should be towards the center
 # pawns should advance (center pawns should advance more)
+# pawns near king should stay back
 # king should stay back
-king_map = {0:10, 1:10, 2:10, 6:10, 7:10, 56:10, 57:10, 58:10, 62:10, 63:10}
-queen_map = {}
-rook_map = {}
-knight_map = {}
-bishop_map = {}
-pawn_map = {}
+king_map = {10: [0,1,2,6,7,56,57,58,62,63]}
+queen_map = {10: [18,19,20,21,26,27,28,34,35,36,37,42,43,44,45]}
+rook_map = {10 : [9,10,11,12,13,14,49,50,51,52,53,54], -10: [1,6,57,58]}
+knight_map = {10 : [18,21,42,45], 10: [19,20,27,28,35,36,43,44], -10: [0,1,2,3,4,5,6,7,8,15,16,23,23,31,32,39,40,47,48,55,56,63]}
+bishop_map = {-10: [0,1,2,3,4,5,6,7,8,15,16,23,23,31,32,39,40,47,48,55,56,63]}
+pawn_map = {20: [27,28,35,36], 10: [8,9,13,14,48,49,53,54], -10: [10,11,12,50,51,52]}
 
 # draw the board
 def drawBoard(board):
@@ -131,17 +132,29 @@ def staticValue(piece):
 def positionalEvaluation(piece, square):
     try:
         if piece == "k":
-            return king_map[square]
+            for score in king_map:
+                if square in king_map[score]:
+                    return score
         if piece == "q":
-            return queen_map[square]
+            for score in queen_map:
+                if square in queen_map[score]:
+                    return score
         if piece == "r":
-            return queen_map[square]
+            for score in rook_map:
+                if square in rook_map[score]:
+                    return score
         if piece == "n":
-            return knight_map[square]
+            for score in knight_map:
+                if square in knight_map[score]:
+                    return score
         if piece == "b":
-            return bishop_map[square]
+            for score in bishop_map:
+                if square in bishop_map[score]:
+                    return score
         if piece == "p":
-            return pawn_map[square]
+            for score in pawn_map:
+                if square in pawn_map[score]:
+                    return score
     except Exception as e:
         return 0
 
