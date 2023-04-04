@@ -18,9 +18,8 @@ CAP = 1000
 # notable squares for pieces --- each key represents a really good or really bad square -- mapped to its value
 # knights/bishops/queens should be towards the center
 # pawns should advance (center pawns should advance more)
-# king should stay back early on
-# king should stay middle later on
-king_map = {}
+# king should stay back
+king_map = {0:10, 1:10, 2:10, 6:10, 7:10, 56:10, 57:10, 58:10, 62:10, 63:10}
 queen_map = {}
 rook_map = {}
 knight_map = {}
