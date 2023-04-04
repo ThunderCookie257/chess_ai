@@ -40,7 +40,7 @@ def getPlayerMove():
 def getAIMove(board):
    bestVal = float("inf")
    bestMove = ""
-   depth = 25 # depth first dive in to this many sub boards... actual # of boards analyzed will be tempered by CAP
+   depth = 5 # depth first dive in to this many sub boards... actual # of boards analyzed will be tempered by CAP
    alpha = float("-inf")
    beta = float("inf")
 
@@ -57,8 +57,7 @@ def getAIMove(board):
    return bestMove
 
 def minimax(board, depth, alpha, beta, maximizingPlayer, num_pos):
-   
-   # once we analyze 1000 boards... dont do any more recursion and just finish up
+   # once we analyze CAP boards -- dont go any further in depth 
    if num_pos > CAP:
        num_pos = num_pos + 1
        return evaluate(board), num_pos
@@ -157,6 +156,7 @@ def positionalEvaluation(piece, square):
                     return score
     except Exception as e:
         return 0
+    return 0
 
 # value of piece by position
 
