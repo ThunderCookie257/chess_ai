@@ -2,7 +2,6 @@ import chess
 
 # once we analyze these many boards... dont go any deeper just finsh up
 CAP = 1000
-
 # board:
 # BLACK
 # 56 57 58 59 60 61 62 63
@@ -21,7 +20,7 @@ CAP = 1000
 # pawns should advance (center pawns should advance more)
 # pawns near king should stay back
 # king should stay back
-king_map = {10: [0,1,2,6,7,56,57,58,62,63], -5: [1,2,6,7,56,57,62,63]}
+king_map = {10: [0,1,2,6,7,56,57,62,63], -5: [3,4,5,56,59,60,61]}
 queen_map = {5: [18,19,20,21,26,27,28,34,35,36,37,42,43,44,45]}
 rook_map = {10 : [9,10,11,12,13,14,49,50,51,52,53,54], -10: [1,6,57,58]}
 knight_map = {20 : [18,21,42,45], 10: [19,20,27,28,35,36,43,44], -10: [0,1,2,3,4,5,6,7,8,15,16,23,23,31,32,39,40,47,48,55,56,63]}
@@ -39,56 +38,105 @@ def getPlayerMove():
 
 # AI is playing black... will try to find the move that minimizes bestVal
 def getAIMove(board):
-   bestVal = float("inf")
-   bestMove = ""
-   depth = 4 # depth first dive in to this many sub boards... actual # of boards analyzed will be tempered by CAP
-   alpha = float("-inf")
-   beta = float("inf")
+    bestVal = float("inf")
+    bestMove = ""
+    depth = 4 # depth first dive in to this many sub boards... actual # of boards analyzed will be tempered by CAP
+    alpha = float("-inf")
+    beta = float("inf")
+    visited = 0
+    bestVal, bestMove, visited = minimax(board, depth, alpha, beta, False, visited) # ai is black
+    print("My best move: " + str(bestMove))
+    print("I visited: " + str(visited) + " boards.")
+    print("The evaluation is now: " + str(bestVal))
+    return bestMove
 
-   for move in board.legal_moves: # all possible moves for black... do the first layer here
-       board.push(move)
-       moveVal, positions_analyzed = minimax(board, depth -1 , alpha, beta, True, 0)
-       if moveVal < bestVal:
-           bestMove = move
-           bestVal = moveVal
-       board.pop()
-   print("My best move: " + str(bestMove))
-   print("I analyzed: " + str(positions_analyzed) + " boards.")
-   print("The evaluation is now: " + str(bestVal))
-   return bestMove
-
-def minimax(board, depth, alpha, beta, maximizingPlayer, num_pos):
-   # once we analyze CAP boards -- dont go any further in depth 
-   #if num_pos > CAP:
+def minimax(board, depth, alpha, beta, maximizingPlayer, visited):
+    # once we analyze CAP boards -- dont go any further in depth 
+    #if num_pos > CAP:
     #   num_pos = num_pos + 1
     #   return evaluate(board), num_pos
 
-   if depth == 0 or board.is_game_over():
-       num_pos = num_pos + 1
-       return evaluate(board), num_pos
-  
-   if maximizingPlayer:
-       maxEval = float("-inf")
-       for move in list(board.legal_moves):
-           board.push(move)
-           eval, num_pos = minimax(board, depth -1, alpha, beta, False, num_pos)
-           maxEval = max(eval, maxEval)
-           alpha = max(alpha, maxEval)
-           board.pop()
-           if beta <= alpha:
-               break
-       return maxEval, num_pos
-   else:
-       minEval = float("inf")
-       for move in list(board.legal_moves):
-           board.push(move)
-           eval, num_pos = minimax(board, depth -1, alpha, beta, True, num_pos)
-           minEval = min(minEval, eval)
-           beta = min(beta, minEval)
-           board.pop()
-           if beta <= alpha:
-               break
-       return minEval, num_pos
+    if depth == 0 or board.is_game_over():
+        return evaluate(board), None, visited
+
+    if maximizingPlayer:
+        maxEval = float("-inf")
+        bestMove = None
+        moves = list(board.legal_moves)
+        moves = orderMoves(moves, board) # sort moves to check better ones first 
+        for move in moves:
+            board.push(move)
+            eval, mv, visited = minimax(board, depth -1, alpha, beta, False, visited)
+            if eval > maxEval:
+                bestMove = move
+            maxEval = max(eval, maxEval)
+            alpha = max(alpha, maxEval)
+            board.pop()
+            visited = visited + 1
+            if beta <= alpha:
+                break
+        return maxEval, bestMove, visited
+    else:
+        minEval = float("inf")
+        bestMove = None
+        moves = list(board.legal_moves)
+        moves = orderMoves(moves, board)
+        for move in moves:
+            board.push(move)
+            eval, mv, visited = minimax(board, depth -1, alpha, beta, True, visited)
+            if eval < minEval:
+                bestMove = move
+            minEval = min(minEval, eval)
+            beta = min(beta, minEval)
+            board.pop()
+            visited = visited + 1
+            if beta <= alpha:
+                break
+        return minEval, bestMove, visited
+
+
+# sort the moves by value of captures...
+# if square is defended -- assume we will lose our capturing piece
+# if square is not defended -- value is value of captured piece
+# non-capture moves have value of -1000
+# observation while testing different values:
+#   should always do non-captures last... since theres so many of them its far better to go through all captures first 
+# reduces boards analyzed significantly!
+def orderMoves(moves, board):
+    ordered = []
+    captures_first = []
+    for move in moves:
+        starting = str(move)[0:2]
+        ending = str(move)[2:4]
+        starting_piece = board.piece_at(chess.parse_square(starting))
+        ending_piece = board.piece_at(chess.parse_square(ending))
+
+        if ending_piece: # capture
+            value = 0
+            if board.is_attacked_by(not starting_piece.color, chess.parse_square(ending)): # opponent defends
+                value = getValue(ending_piece.symbol()) - getValue(starting_piece.symbol()) # we lose our piece
+            else:
+                value = getValue(ending_piece.symbol()) # undefened... we win a piece
+            captures_first.append({"move" : move, "value":value})
+        else:
+            captures_first.append({"move": move, "value" : -1000})
+    captures_first = sorted(captures_first, key=lambda x: x["value"], reverse=True)
+    for move in captures_first:
+        ordered.append(move["move"])
+    return ordered
+
+# value of piece
+def getValue(piece):
+    piece = piece.lower()
+    if piece == "k":
+        return 0
+    if piece == "q":
+        return 9
+    if piece == "r":
+        return 5
+    if piece == "n" or piece == "b":
+        return 3
+    return 1 # pawn
 
 def evaluate(board):
     white_score = 0
