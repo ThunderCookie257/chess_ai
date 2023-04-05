@@ -4,28 +4,87 @@ import chess
 CAP = 1000
 # board:
 # BLACK
-# 56 57 58 59 60 61 62 63
-# 48 49 50 51 52 53 54 55
-# 40 41 42 43 44 45 46 47
-# 32 33 34 35 36 37 38 39
-# 24 25 26 27 28 29 30 31
-# 16 17 18 19 20 21 22 23
-# 8  9  10 11 12 13 14 15
-# 0  1  2  3  4  5  6  7
+# 56 57 58 59 60 61 62 63   # H
+# 48 49 50 51 52 53 54 55   # G
+# 40 41 42 43 44 45 46 47   # F
+# 32 33 34 35 36 37 38 39   # E
+# 24 25 26 27 28 29 30 31   # D 
+# 16 17 18 19 20 21 22 23   # C
+# 8  9  10 11 12 13 14 15   # B
+# 0  1  2  3  4  5  6  7    # A
+
+# 1  2  3  4  5  6  7  8
 # WHITE
 
-# notable squares for pieces --- key: score --- value: squares 
-# knights/bishops/queens should be towards the center
-# queen should generally move later
-# pawns should advance (center pawns should advance more)
-# pawns near king should stay back
-# king should stay back
-king_map = {10: [0,1,2,6,7,56,57,62,63], -5: [3,4,5,56,59,60,61]}
-queen_map = {5: [18,19,20,21,26,27,28,34,35,36,37,42,43,44,45]}
-rook_map = {10 : [9,10,11,12,13,14,49,50,51,52,53,54], -10: [1,6,57,58]}
-knight_map = {20 : [18,21,42,45], 10: [19,20,27,28,35,36,43,44], -10: [0,1,2,3,4,5,6,7,8,15,16,23,23,31,32,39,40,47,48,55,56,63]}
-bishop_map = {-10: [0,1,2,3,4,5,6,7,8,15,16,23,23,31,32,39,40,47,48,55,56,63]}
-pawn_map = {20: [27,28,35,36], 10: [8,9,13,14,48,49,53,54], -10: [10,11,12,50,51,52]}
+# Scoring:
+# -10 = disadvantage
+# -5 = slight disadvantage
+# 0 = neutral
+# 5 = slight advantage
+# 10 = advantage
+
+# king stays near edge of board
+king_table = [[10,10,10,-5,-5,-5,10,10],
+              [-5,-5,-5,-5,-5,-5,-5,-5],
+              [-5,-5,-5,-5,-5,-5,-5,-5],
+              [-5,-5,-5,-5,-5,-5,-5,-5],
+              [-5,-5,-5,-5,-5,-5,-5,-5],
+              [-5,-5,-5,-5,-5,-5,-5,-5],
+              [-5,-5,-5,-5,-5,-5,-5,-5],
+              [10,10,10,-5,-5,-5,10,10]]
+
+# queen is good whereever... depends on tactics
+# slightly discourage home squares 
+queen_table = [[0 ,0 ,0 ,-5,0 ,0 ,0 ,0 ],
+              [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+              [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+              [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+              [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+              [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+              [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+              [0 ,0 ,0 ,-5,0 ,0 ,0 ,0 ]]
+
+# rooks on the second or seventh rank are good 
+rook_table = [[0 ,-5,0 ,0 ,0 ,0 ,-5,0 ],
+              [10,10,10,10,10,10,10,10],
+              [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+              [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+              [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+              [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+              [10,10,10,10,10,10,10,10],
+              [0 ,-5,0 ,0 ,0 ,0 ,-5,0 ]]
+
+# knights better towards the center
+# disadvantage towards the sides
+knight_table = [[-10,-5 ,-10,-10,-10,-10,-5 ,-10],
+              [-10,0  ,0  ,0  ,0  ,0  ,0  ,-10],
+              [-10,5  ,10 ,10 ,10 ,10 ,5  ,-10],
+              [-10,5  ,10 ,10 ,10 ,10 ,5  ,-10],
+              [-10,5  ,10 ,10 ,10 ,10 ,5  ,-10],
+              [-10,5  ,10 ,10 ,10 ,10 ,5  ,-10],
+              [-10,5  ,0  ,0  ,0  ,0  ,5  ,-10],
+              [-10,-5 ,-10,-10,-10,-10,-5 ,-10]]
+
+# bishops better along longer diagonals
+# disadvanatge towards the sides
+bishop_table =[[-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ],
+              [-5 ,5  ,0  ,5  ,5  ,0  ,5  ,-5 ],
+              [-5 ,0  ,0  ,5  ,5  ,0  ,0  ,-5 ],
+              [-5 ,5  ,5  ,0  ,0  ,5  ,5  ,-5 ],
+              [-5 ,5  ,5  ,0  ,0  ,5  ,5  ,-5 ],
+              [-5 ,0  ,0  ,5  ,5  ,0  ,0  ,-5 ],
+              [-5 ,0  ,0  ,5  ,5  ,0  ,0  ,-5 ],
+              [-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ]]
+
+# pawns good towards the center 
+pawn_table = [[0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+              [0 ,5 ,0 ,-5,-5,0 ,5 ,0 ],
+              [0 ,0 ,0 ,5 ,5 ,0 ,0 ,0 ],
+              [0 ,0 ,10,10,10,10,0 ,0 ],
+              [0 ,0 ,10,10,10,10,0 ,0 ],
+              [0 ,0 ,0 ,5 ,5 ,0 ,0 ,0 ],
+              [0 ,5 ,0 ,-5,-5,0 ,5 ,0 ],
+              [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ]]
 
 # draw the board
 def drawBoard(board):
@@ -40,14 +99,14 @@ def getPlayerMove():
 def getAIMove(board):
     bestVal = float("inf")
     bestMove = ""
-    depth = 4 # depth first dive in to this many sub boards... actual # of boards analyzed will be tempered by CAP
+    depth = 5 # depth first dive in to this many sub boards... actual # of boards analyzed will be tempered by CAP
     alpha = float("-inf")
     beta = float("inf")
     visited = 0
     bestVal, bestMove, visited = minimax(board, depth, alpha, beta, False, visited) # ai is black
     print("My best move: " + str(bestMove))
     print("I visited: " + str(visited) + " boards.")
-    print("The evaluation is now: " + str(bestVal))
+    print("The evaluation is now: " + str(bestVal / 100))
     return bestMove
 
 def minimax(board, depth, alpha, beta, maximizingPlayer, visited):
@@ -114,12 +173,12 @@ def orderMoves(moves, board):
         if ending_piece: # capture
             value = 0
             if board.is_attacked_by(not starting_piece.color, chess.parse_square(ending)): # opponent defends
-                value = getValue(ending_piece.symbol()) - getValue(starting_piece.symbol()) # we lose our piece
+                value = getValue(ending_piece.symbol()) - getValue(starting_piece.symbol()) # assume we lose our piece
             else:
                 value = getValue(ending_piece.symbol()) # undefened... we win a piece
             captures_first.append({"move" : move, "value":value})
         else:
-            captures_first.append({"move": move, "value" : -1000})
+            captures_first.append({"move": move, "value" : -1000}) # do non capture moves last 
     captures_first = sorted(captures_first, key=lambda x: x["value"], reverse=True)
     for move in captures_first:
         ordered.append(move["move"])
@@ -131,12 +190,12 @@ def getValue(piece):
     if piece == "k":
         return 0
     if piece == "q":
-        return 9
+        return 900
     if piece == "r":
-        return 5
+        return 500
     if piece == "n" or piece == "b":
-        return 3
-    return 1 # pawn
+        return 300
+    return 100 # pawn
 
 def evaluate(board):
     white_score = 0
@@ -152,57 +211,30 @@ def evaluate(board):
         piece = board.piece_at(square)
         if piece is not None:
             if piece.symbol() == piece.symbol().upper():
-                white_score = white_score + staticValue(piece.symbol().lower())
+                white_score = white_score + getValue(piece.symbol().lower())
                 white_score = white_score + positionalEvaluation(piece.symbol().lower(), square)
             else:
-                black_score = black_score + staticValue(piece.symbol().lower())
+                black_score = black_score + getValue(piece.symbol().lower())
                 black_score = black_score + positionalEvaluation(piece.symbol().lower(), square)
 
     return white_score - black_score
-
-
-# value of piece by type
-def staticValue(piece):
-    if piece == "q":
-        return 900
-    if piece == "n":
-        return 300
-    if piece == "b":
-        return 300
-    if piece == "r":
-        return 500
-    if piece == "p":
-        return 100
-    return 0
 
 # value of piece by where it is on the board 
 # if square isnt explicitely mapped... return 0 -- doesn't matter if its on that square
 def positionalEvaluation(piece, square):
     try:
         if piece == "k":
-            for score in king_map:
-                if square in king_map[score]:
-                    return score
+            return king_table[7 - int(square/8)][square - 8 * int(square/8)]
         if piece == "q":
-            for score in queen_map:
-                if square in queen_map[score]:
-                    return score
+            return queen_table[7 - int(square/8)][square - 8 * int(square/8)]
         if piece == "r":
-            for score in rook_map:
-                if square in rook_map[score]:
-                    return score
+            return rook_table[7 - int(square/8)][square - 8 * int(square/8)]
         if piece == "n":
-            for score in knight_map:
-                if square in knight_map[score]:
-                    return score
+            return knight_table[7 - int(square/8)][square - 8 * int(square/8)]
         if piece == "b":
-            for score in bishop_map:
-                if square in bishop_map[score]:
-                    return score
+            return bishop_table[7 - int(square/8)][square - 8 * int(square/8)]
         if piece == "p":
-            for score in pawn_map:
-                if square in pawn_map[score]:
-                    return score
+            return pawn_table[7 - int(square/8)][square - 8 * int(square/8)]
     except Exception as e:
         return 0
     return 0
