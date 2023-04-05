@@ -120,7 +120,7 @@ def minimax(board, depth, alpha, beta, maximizingPlayer, visited):
 
     if maximizingPlayer:
         maxEval = float("-inf")
-        bestMove = None
+        bestMove = moves[0]
         moves = list(board.legal_moves)
         moves = orderMoves(moves, board) # sort moves to check better ones first 
         for move in moves:
@@ -137,7 +137,7 @@ def minimax(board, depth, alpha, beta, maximizingPlayer, visited):
         return maxEval, bestMove, visited
     else:
         minEval = float("inf")
-        bestMove = None
+        bestMove = moves[0]
         moves = list(board.legal_moves)
         moves = orderMoves(moves, board)
         for move in moves:
