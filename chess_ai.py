@@ -22,46 +22,45 @@ CAP = 1000
 # 0 = neutral
 # 5 = slight advantage
 # 10 = advantage
-
+# 20 = should be played 
 # king stays near edge of board
-king_table = [[10,10,10,-5,-5,-5,10,10],
+king_table = [[10,10,10,-5,-5,-5,20,10],
               [-5,-5,-5,-5,-5,-5,-5,-5],
               [-5,-5,-5,-5,-5,-5,-5,-5],
               [-5,-5,-5,-5,-5,-5,-5,-5],
               [-5,-5,-5,-5,-5,-5,-5,-5],
               [-5,-5,-5,-5,-5,-5,-5,-5],
               [-5,-5,-5,-5,-5,-5,-5,-5],
-              [10,10,10,-5,-5,-5,10,10]]
+              [10,10,10,-5,-5,-5,20,10]]
 
-# queen is good whereever... depends on tactics
-# slightly discourage home squares 
-queen_table = [[0 ,0 ,0 ,-5,0 ,0 ,0 ,0 ],
+# queen is good whereever... depends on tactics 
+queen_table = [[0 ,0 ,0 ,0,0 ,0 ,0 ,0 ],
               [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
               [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
               [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
               [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
               [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
               [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
-              [0 ,0 ,0 ,-5,0 ,0 ,0 ,0 ]]
+              [0 ,0 ,0 ,0,0 ,0 ,0 ,0 ]]
 
 # rooks on the second or seventh rank are good 
 rook_table = [[0 ,-5,0 ,0 ,0 ,0 ,-5,0 ],
-              [10,10,10,10,10,10,10,10],
+              [0 ,10,10,10,10,10,10,0 ],
               [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
               [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
               [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
               [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
-              [10,10,10,10,10,10,10,10],
+              [0 ,10,10,10,10,10,10,0 ],
               [0 ,-5,0 ,0 ,0 ,0 ,-5,0 ]]
 
 # knights better towards the center
 # disadvantage towards the sides
 knight_table = [[-10,-5 ,-10,-10,-10,-10,-5 ,-10],
               [-10,0  ,0  ,0  ,0  ,0  ,0  ,-10],
+              [-10,5  ,20 ,10 ,10 ,20 ,5  ,-10],
               [-10,5  ,10 ,10 ,10 ,10 ,5  ,-10],
               [-10,5  ,10 ,10 ,10 ,10 ,5  ,-10],
-              [-10,5  ,10 ,10 ,10 ,10 ,5  ,-10],
-              [-10,5  ,10 ,10 ,10 ,10 ,5  ,-10],
+              [-10,5  ,20 ,10 ,10 ,20 ,5  ,-10],
               [-10,5  ,0  ,0  ,0  ,0  ,5  ,-10],
               [-10,-5 ,-10,-10,-10,-10,-5 ,-10]]
 
@@ -70,8 +69,8 @@ knight_table = [[-10,-5 ,-10,-10,-10,-10,-5 ,-10],
 bishop_table =[[-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ],
               [-5 ,5  ,0  ,5  ,5  ,0  ,5  ,-5 ],
               [-5 ,0  ,0  ,5  ,5  ,0  ,0  ,-5 ],
-              [-5 ,5  ,5  ,0  ,0  ,5  ,5  ,-5 ],
-              [-5 ,5  ,5  ,0  ,0  ,5  ,5  ,-5 ],
+              [-5 ,5  ,10 ,0  ,0  ,10 ,5  ,-5 ],
+              [-5 ,5  ,10 ,0  ,0  ,10 ,5  ,-5 ],
               [-5 ,0  ,0  ,5  ,5  ,0  ,0  ,-5 ],
               [-5 ,0  ,0  ,5  ,5  ,0  ,0  ,-5 ],
               [-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ]]
@@ -80,8 +79,8 @@ bishop_table =[[-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ],
 pawn_table = [[0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
               [0 ,5 ,0 ,-5,-5,0 ,5 ,0 ],
               [0 ,0 ,0 ,5 ,5 ,0 ,0 ,0 ],
-              [0 ,0 ,10,10,10,10,0 ,0 ],
-              [0 ,0 ,10,10,10,10,0 ,0 ],
+              [0 ,0 ,10,20,20,10,0 ,0 ],
+              [0 ,0 ,10,20,20,10,0 ,0 ],
               [0 ,0 ,0 ,5 ,5 ,0 ,0 ,0 ],
               [0 ,5 ,0 ,-5,-5,0 ,5 ,0 ],
               [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ]]
@@ -93,13 +92,17 @@ def drawBoard(board):
 # get player's move as an input
 def getPlayerMove():
     move = input("Enter your move in UCI notation (e.g. e2e4): ")
-    return chess.Move.from_uci(move)
+    try:
+        return chess.Move.from_uci(move)
+    except Exception as e:
+        return None
+
 
 # AI is playing black... will try to find the move that minimizes bestVal
 def getAIMove(board):
     bestVal = float("inf")
     bestMove = ""
-    depth = 5 # depth first dive in to this many sub boards... actual # of boards analyzed will be tempered by CAP
+    depth = 4 # depth first dive in to this many sub boards... actual # of boards analyzed will be tempered by CAP
     alpha = float("-inf")
     beta = float("inf")
     visited = 0
@@ -120,8 +123,8 @@ def minimax(board, depth, alpha, beta, maximizingPlayer, visited):
 
     if maximizingPlayer:
         maxEval = float("-inf")
-        bestMove = moves[0]
         moves = list(board.legal_moves)
+        bestMove = moves[0]
         moves = orderMoves(moves, board) # sort moves to check better ones first 
         for move in moves:
             board.push(move)
@@ -137,8 +140,8 @@ def minimax(board, depth, alpha, beta, maximizingPlayer, visited):
         return maxEval, bestMove, visited
     else:
         minEval = float("inf")
-        bestMove = moves[0]
         moves = list(board.legal_moves)
+        bestMove = moves[0]
         moves = orderMoves(moves, board)
         for move in moves:
             board.push(move)
@@ -178,7 +181,7 @@ def orderMoves(moves, board):
                 value = getValue(ending_piece.symbol()) # undefened... we win a piece
             captures_first.append({"move" : move, "value":value})
         else:
-            captures_first.append({"move": move, "value" : -1000}) # do non capture moves last 
+            captures_first.append({"move": move, "value" : -1000}) # do non capture moves 
     captures_first = sorted(captures_first, key=lambda x: x["value"], reverse=True)
     for move in captures_first:
         ordered.append(move["move"])
