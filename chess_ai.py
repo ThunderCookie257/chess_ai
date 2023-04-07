@@ -27,7 +27,7 @@ MAX_POS = 400000
 
 # 1  2  3  4  5  6  7  8
 # WHITE
-
+# king_table[7 - int(square/8)][square - 8 * int(square/8)]
 # Scoring:
 # -10 = disadvantage
 # -5 = slight disadvantage
@@ -153,7 +153,6 @@ def minimax(board, depth, alpha, beta, maximizingPlayer, visited, tpt, tpt_uses,
 
     if depth == 0 or board.is_game_over():
         eval = evaluate(board)
-        prev = {}
         return eval, None, visited, tpt, tpt_uses
 
     if maximizingPlayer:
@@ -163,19 +162,20 @@ def minimax(board, depth, alpha, beta, maximizingPlayer, visited, tpt, tpt_uses,
         moves = orderMoves(moves, board) # sort moves to check better ones first 
         if bmove and bmove in list(board.legal_moves):
             moves.insert(0,bmove) # prinicpal variation -- best move from previous iteration gets evaluated first 
-        # moves = orderByTranspos(moves,board, tpt, maximizingPlayer)
         for move in moves:
             board.push(move)
 
             str_board = str(board)
             if str_board in tpt["moves"].keys() and tpt["moves"][str_board][1] and tpt["moves"][str_board][2] >= depth:
+                
                 if tpt["moves"][str_board][0] > maxEval:
-                    maxEval = max(tpt["moves"][str_board][0], maxEval)
                     bestMove = move
-                    board.pop()
-                    tpt_uses = tpt_uses + 1
-                    visited = visited + 1
-                    continue
+
+                maxEval = max(tpt["moves"][str_board][0], maxEval)
+                board.pop()
+                tpt_uses = tpt_uses + 1
+                visited = visited + 1
+                continue
 
             eval, mv, visited, tpt, tpt_uses = minimax(board, depth -1, alpha, beta, False, visited, tpt, tpt_uses, bmove)
 
@@ -201,19 +201,20 @@ def minimax(board, depth, alpha, beta, maximizingPlayer, visited, tpt, tpt_uses,
         moves = orderMoves(moves, board)
         if bmove and bmove in list(board.legal_moves):
             moves.insert(0,bmove) # prinicpal variation -- best move from previous iteration gets evaluated first 
-        # moves = orderByTranspos(moves, board, tpt, maximizingPlayer)
         for move in moves:
             board.push(move)
 
             str_board = str(board)
             if str_board in tpt["moves"].keys() and not tpt["moves"][str_board][1] and tpt["moves"][str_board][2] >= depth:
+
                 if tpt["moves"][str_board][0] < minEval:
-                    minEval = min(tpt["moves"][str_board][0], minEval)
                     bestMove = move
-                    board.pop()
-                    tpt_uses = tpt_uses + 1
-                    visited = visited + 1
-                    continue
+                
+                minEval = min(tpt["moves"][str_board][0], minEval)
+                board.pop()
+                tpt_uses = tpt_uses + 1
+                visited = visited + 1
+                continue
 
             eval, mv, visited, tpt, tpt_uses = minimax(board, depth -1, alpha, beta, True, visited, tpt, tpt_uses, bmove)
 
