@@ -1,5 +1,14 @@
 import chess
 import json
+import time
+
+# concepts implemented
+# minimax
+# alpha beta pruning
+# capture move ordering
+# transposition tables
+# iterative deepening + principle variation move ordering
+
 # once we analyze these many boards... dont go any deeper just finsh up
 CAP = 1000
 
@@ -104,7 +113,7 @@ def getPlayerMove():
 # AI is playing black... will try to find the move that minimizes bestVal
 def getAIMove(board, tpt):
     bestVal = float("inf")
-    bestMove = ""
+    bestMove = None
     depth = 5 # depth first dive in to this many sub boards... actual # of boards analyzed will be tempered by CAP
     alpha = float("-inf")
     beta = float("inf")
@@ -114,15 +123,29 @@ def getAIMove(board, tpt):
     if len(tpt["moves"].keys()) > MAX_POS: # transposition table is too big -- reset it 
         tpt = {"moves": {}}
 
-    bestVal, bestMove, visited, tpt, tpt_uses = minimax(board, depth, alpha, beta, False, visited, tpt, tpt_uses) # ai is black
+    curr_depth = 1
+    max_depth = 6
+    curr_time = 0
+    max_time = 10 # seconds
+    while curr_time < max_time and curr_depth < max_depth: # iterative deepening ... passing along the principle variation (best move)
+        start = time.time()
+        val, move, visited, tpt, tpt_uses = minimax(board, curr_depth, alpha, beta, False, visited, tpt, tpt_uses, bestMove) # ai is black
+        end = time.time()
+        curr_time = curr_time + end - start
+        curr_depth = curr_depth + 1
+        if val < bestVal:
+            bestVal = val
+            bestMove = move
+
     print("My best move: " + str(bestMove))
     print("I visited: " + str(visited) + " boards.")
     print("The evaluation is now: " + str(bestVal / 100))
     print("The transposition table has: " + str(len(tpt["moves"].keys())) + " positions.")
     print("The transposition table was used: " + str(tpt_uses) + " times.")
+    print("I got to depth: " + str(curr_depth) + " in: " + str(curr_time) + " seconds!")
     return bestMove
 
-def minimax(board, depth, alpha, beta, maximizingPlayer, visited, tpt, tpt_uses):
+def minimax(board, depth, alpha, beta, maximizingPlayer, visited, tpt, tpt_uses, bmove):
     # once we analyze CAP boards -- dont go any further in depth 
     #if num_pos > CAP:
     #   num_pos = num_pos + 1
@@ -138,6 +161,8 @@ def minimax(board, depth, alpha, beta, maximizingPlayer, visited, tpt, tpt_uses)
         moves = list(board.legal_moves)
         bestMove = moves[0]
         moves = orderMoves(moves, board) # sort moves to check better ones first 
+        if bmove and bmove in list(board.legal_moves):
+            moves.insert(0,bmove) # prinicpal variation -- best move from previous iteration gets evaluated first 
         # moves = orderByTranspos(moves,board, tpt, maximizingPlayer)
         for move in moves:
             board.push(move)
@@ -152,7 +177,7 @@ def minimax(board, depth, alpha, beta, maximizingPlayer, visited, tpt, tpt_uses)
                     visited = visited + 1
                     continue
 
-            eval, mv, visited, tpt, tpt_uses = minimax(board, depth -1, alpha, beta, False, visited, tpt, tpt_uses)
+            eval, mv, visited, tpt, tpt_uses = minimax(board, depth -1, alpha, beta, False, visited, tpt, tpt_uses, bmove)
 
             if str_board not in tpt["moves"].keys():
                 tpt["moves"][str_board] = [eval, maximizingPlayer, depth]
@@ -174,6 +199,8 @@ def minimax(board, depth, alpha, beta, maximizingPlayer, visited, tpt, tpt_uses)
         moves = list(board.legal_moves)
         bestMove = moves[0]
         moves = orderMoves(moves, board)
+        if bmove and bmove in list(board.legal_moves):
+            moves.insert(0,bmove) # prinicpal variation -- best move from previous iteration gets evaluated first 
         # moves = orderByTranspos(moves, board, tpt, maximizingPlayer)
         for move in moves:
             board.push(move)
@@ -188,7 +215,7 @@ def minimax(board, depth, alpha, beta, maximizingPlayer, visited, tpt, tpt_uses)
                     visited = visited + 1
                     continue
 
-            eval, mv, visited, tpt, tpt_uses = minimax(board, depth -1, alpha, beta, True, visited, tpt, tpt_uses)
+            eval, mv, visited, tpt, tpt_uses = minimax(board, depth -1, alpha, beta, True, visited, tpt, tpt_uses, bmove)
 
             if str_board not in tpt["moves"].keys():
                 tpt["moves"][str_board] = [eval, maximizingPlayer, depth]
