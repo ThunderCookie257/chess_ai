@@ -145,7 +145,7 @@ def getAIMove(board, tpt):
         start = time.time()
         val, move, visited, tpt, tpt_uses = minimax(board, curr_depth, alpha, beta, False, visited, tpt, tpt_uses, bestMove) # ai is black
         end = time.time()
-        print("Found: " + str(move) + " at depth: " + str(curr_depth) + " with eval: " + str(val))
+        print("Found: " + str(move) + " at depth: " + str(curr_depth) + " with eval: " + str(val/100))
         curr_time = curr_time + end - start
         curr_depth = curr_depth + 1
         # update best move at new depth:
@@ -307,7 +307,7 @@ def evaluate(board):
                 black_score = black_score + getValue(piece.symbol().lower())
                 black_score = black_score + positionalEvaluation(piece.symbol().lower(), square, False)
 
-    return white_score - black_score
+    return white_score - black_score + immediateCaptureScore(board)
 
 # value of piece by where it is on the board 
 # if square isnt explicitely mapped... return 0 -- doesn't matter if its on that square
@@ -333,6 +333,27 @@ def positionalEvaluation(piece, square, white):
         print(e)
         return 0
     return 0
+
+# returns a score that reflects the value of immediate captures from the current position
+# negative for black
+def immediateCaptureScore(board):
+    score = 0
+    for move in board.legal_moves:
+        starting = str(move)[0:2]
+        ending = str(move)[2:4]
+        starting_piece = board.piece_at(chess.parse_square(starting))
+        ending_piece = board.piece_at(chess.parse_square(ending))
+        if ending_piece: # capture
+            value = 0
+            if board.is_attacked_by(not starting_piece.color, chess.parse_square(ending)): # opponent defends
+                value = getValue(ending_piece.symbol()) - getValue(starting_piece.symbol()) # assume we lose our piece
+            else:
+                value = getValue(ending_piece.symbol()) # undefened... we win a piece
+            score = score + value
+    
+    if board.turn == chess.WHITE:
+        return score
+    return 0 - score
 
 def play():
    board = chess.Board()
