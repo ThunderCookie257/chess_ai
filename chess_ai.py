@@ -120,14 +120,14 @@ def getAIMove(board, tpt):
         tpt = {"moves": {}}
 
     curr_depth = 1
-    max_depth = 6
+    max_depth = 5
     curr_time = 0
     max_time = 10 # seconds
-    while curr_time < max_time and curr_depth < max_depth: # iterative deepening ... passing along the principle variation (best move)
+    while curr_time < max_time and curr_depth <= max_depth: # iterative deepening ... passing along the principle variation (best move)
         start = time.time()
         val, move, visited, tpt, tpt_uses = minimax(board, curr_depth, alpha, beta, False, visited, tpt, tpt_uses, bestMove) # ai is black
         end = time.time()
-        print("Found: " + str(move) + " at depth:" + str(curr_depth) + " with eval: " + str(val))
+        print("Found: " + str(move) + " at depth: " + str(curr_depth) + " with eval: " + str(val))
         curr_time = curr_time + end - start
         curr_depth = curr_depth + 1
         # update best move at new depth:
@@ -139,7 +139,7 @@ def getAIMove(board, tpt):
     print("The evaluation is now: " + str(bestVal / 100))
     print("The transposition table has: " + str(len(tpt["moves"].keys())) + " positions.")
     print("The transposition table was used: " + str(tpt_uses) + " times.")
-    print("I got to depth: " + str(curr_depth) + " in: " + str(curr_time) + " seconds!")
+    print("I got to depth: " + str(curr_depth-1) + " in: " + str(curr_time) + " seconds!")
     return bestMove
 
 def minimax(board, depth, alpha, beta, maximizingPlayer, visited, tpt, tpt_uses, bmove):
