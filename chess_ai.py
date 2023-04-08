@@ -127,11 +127,12 @@ def getAIMove(board, tpt):
         start = time.time()
         val, move, visited, tpt, tpt_uses = minimax(board, curr_depth, alpha, beta, False, visited, tpt, tpt_uses, bestMove) # ai is black
         end = time.time()
+        print("Found: " + str(move) + " at depth:" + str(curr_depth) + " with eval: " + str(val))
         curr_time = curr_time + end - start
         curr_depth = curr_depth + 1
-        if val < bestVal:
-            bestVal = val
-            bestMove = move
+        # update best move at new depth:
+        bestVal = val
+        bestMove = move
 
     print("My best move: " + str(bestMove))
     print("I visited: " + str(visited) + " boards.")
