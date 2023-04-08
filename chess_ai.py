@@ -302,10 +302,10 @@ def evaluate(board):
         if piece is not None:
             if piece.symbol() == piece.symbol().upper():
                 white_score = white_score + getValue(piece.symbol().lower())
-                white_score = white_score + positionalEvaluation(piece.symbol().lower(), square)
+                white_score = white_score + positionalEvaluation(piece.symbol().lower(), square, True)
             else:
                 black_score = black_score + getValue(piece.symbol().lower())
-                black_score = black_score + positionalEvaluation(piece.symbol().lower(), square)
+                black_score = black_score + positionalEvaluation(piece.symbol().lower(), square, False)
 
     return white_score - black_score
 
