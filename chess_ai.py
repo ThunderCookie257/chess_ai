@@ -53,46 +53,64 @@ queen_table = [[0 ,0 ,0 ,0,0 ,0 ,0 ,0 ],
               [0 ,0 ,0 ,0,0 ,0 ,0 ,0 ]]
 
 # rooks on the second or seventh rank are good 
-rook_table = [[0 ,-5,0 ,0 ,0 ,0 ,-5,0 ],
-              [0 ,10,10,10,10,10,10,0 ],
-              [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
-              [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
-              [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
-              [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
-              [0 ,10,10,10,10,10,10,0 ],
-              [0 ,-5,0 ,0 ,0 ,0 ,-5,0 ]]
+white_rook_table = [[0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+                    [10,20,20,20,20,20,20,10],
+                    [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+                    [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+                    [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+                    [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+                    [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+                    [0 ,-5,0 ,10,10,0 ,-5,0 ]]
+
+black_rook_table = [[0 ,-5,0 ,10,10,0 ,-5,0 ],
+                    [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+                    [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+                    [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+                    [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+                    [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+                    [10,20,20,20,20,20,20,10],
+                    [0 ,-5,0 ,0 ,0 ,0 ,-5,0 ]]
 
 # knights better towards the center
 # disadvantage towards the sides
-knight_table = [[-10,-5 ,-10,-10,-10,-10,-5 ,-10],
+knight_table = [[-10,0  ,-10,-10,-10,-10,0  ,-10],
               [-10,0  ,0  ,0  ,0  ,0  ,0  ,-10],
               [-10,5  ,20 ,10 ,10 ,20 ,5  ,-10],
               [-10,5  ,10 ,10 ,10 ,10 ,5  ,-10],
               [-10,5  ,10 ,10 ,10 ,10 ,5  ,-10],
               [-10,5  ,20 ,10 ,10 ,20 ,5  ,-10],
               [-10,5  ,0  ,0  ,0  ,0  ,5  ,-10],
-              [-10,-5 ,-10,-10,-10,-10,-5 ,-10]]
+              [-10,0  ,-10,-10,-10,-10,0  ,-10]]
 
 # bishops better along longer diagonals
 # disadvanatge towards the sides
 bishop_table =[[-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ],
-              [-5 ,5  ,0  ,5  ,5  ,0  ,5  ,-5 ],
+              [-5 ,10  ,0  ,5  ,5  ,0  ,10  ,-5 ],
               [-5 ,0  ,0  ,5  ,5  ,0  ,0  ,-5 ],
-              [-5 ,5  ,10 ,0  ,0  ,10 ,5  ,-5 ],
-              [-5 ,5  ,10 ,0  ,0  ,10 ,5  ,-5 ],
+              [-5 ,5  ,20 ,0  ,0  ,20 ,5  ,-5 ],
+              [-5 ,5  ,20 ,0  ,0  ,20 ,5  ,-5 ],
               [-5 ,0  ,0  ,5  ,5  ,0  ,0  ,-5 ],
-              [-5 ,0  ,0  ,5  ,5  ,0  ,0  ,-5 ],
+              [-5 ,10  ,0  ,5  ,5  ,0  ,10  ,-5 ],
               [-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ]]
 
 # pawns good towards the center 
-pawn_table = [[0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
-              [0 ,5 ,0 ,-5,-5,0 ,5 ,0 ],
-              [0 ,0 ,0 ,5 ,5 ,0 ,0 ,0 ],
-              [0 ,0 ,10,20,20,10,0 ,0 ],
-              [0 ,0 ,10,20,20,10,0 ,0 ],
-              [0 ,0 ,0 ,5 ,5 ,0 ,0 ,0 ],
-              [0 ,5 ,0 ,-5,-5,0 ,5 ,0 ],
-              [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ]]
+white_pawn_table = [[0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+                    [60,60,60,60,60,60,60,60],
+                    [0 ,0 ,0 ,50,50,0 ,0 ,0 ],
+                    [0 ,0 ,20,40,40,20,0 ,0 ],
+                    [0 ,0 ,10,30,30,10,0 ,0 ],
+                    [0 ,0 ,0 ,5 ,5 ,0 ,0 ,0 ],
+                    [0 ,5 ,0 ,-5,-5,0 ,5 ,0 ],
+                    [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ]]
+
+black_pawn_table = [[0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+                    [0 ,5 ,0 ,-5,-5,0 ,5 ,0 ],
+                    [0 ,0 ,0 ,5 ,5 ,0 ,0 ,0 ],
+                    [0 ,0 ,10,30,30,10,0 ,0 ],
+                    [0 ,0 ,20,40,40,20,0 ,0 ],
+                    [0 ,0 ,0 ,50,50,0 ,0 ,0 ],
+                    [60,60,60,60,60,60,60,60],
+                    [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ]]
 
 # draw the board
 def drawBoard(board):
@@ -293,21 +311,26 @@ def evaluate(board):
 
 # value of piece by where it is on the board 
 # if square isnt explicitely mapped... return 0 -- doesn't matter if its on that square
-def positionalEvaluation(piece, square):
+def positionalEvaluation(piece, square, white):
     try:
         if piece == "k":
             return king_table[7 - int(square/8)][square - 8 * int(square/8)]
         if piece == "q":
             return queen_table[7 - int(square/8)][square - 8 * int(square/8)]
-        if piece == "r":
-            return rook_table[7 - int(square/8)][square - 8 * int(square/8)]
+        if piece == "r" and white:
+            return white_rook_table[7 - int(square/8)][square - 8 * int(square/8)]
+        if piece == "r" and not white:
+           return black_rook_table[7 - int(square/8)][square - 8 * int(square/8)]
         if piece == "n":
             return knight_table[7 - int(square/8)][square - 8 * int(square/8)]
         if piece == "b":
             return bishop_table[7 - int(square/8)][square - 8 * int(square/8)]
-        if piece == "p":
-            return pawn_table[7 - int(square/8)][square - 8 * int(square/8)]
+        if piece == "p" and white:
+            return white_pawn_table[7 - int(square/8)][square - 8 * int(square/8)]
+        if piece == "p" and not white:
+            return black_pawn_table[7 - int(square/8)][square - 8 * int(square/8)]
     except Exception as e:
+        print(e)
         return 0
     return 0
 
