@@ -9,9 +9,6 @@ import time
 # transposition tables
 # iterative deepening + principle variation move ordering
 
-# once we analyze these many boards... dont go any deeper just finsh up
-CAP = 1000
-
 # number of positions to keep in memory before resetting
 MAX_POS = 400000
 # board:
@@ -114,7 +111,6 @@ def getPlayerMove():
 def getAIMove(board, tpt):
     bestVal = float("inf")
     bestMove = None
-    depth = 5 # depth first dive in to this many sub boards... actual # of boards analyzed will be tempered by CAP
     alpha = float("-inf")
     beta = float("inf")
     visited = 0 # number of boards we visit
@@ -146,10 +142,6 @@ def getAIMove(board, tpt):
     return bestMove
 
 def minimax(board, depth, alpha, beta, maximizingPlayer, visited, tpt, tpt_uses, bmove):
-    # once we analyze CAP boards -- dont go any further in depth 
-    #if num_pos > CAP:
-    #   num_pos = num_pos + 1
-    #   return evaluate(board), num_pos
 
     if depth == 0 or board.is_game_over():
         eval = evaluate(board)
@@ -232,32 +224,6 @@ def minimax(board, depth, alpha, beta, maximizingPlayer, visited, tpt, tpt_uses,
             if beta <= alpha:
                 break
         return minEval, bestMove, visited, tpt, tpt_uses
-
-# sort moves by evaluation in transposition table
-# boards not found in tpt are evaluated last...
-# not great...
-def orderByTranspos(moves, board, tpt, maximizingPlayer):
-    ordered = []
-    mapped_to_eval = []
-    not_in_tpt = []
-    for move in moves:
-        board.push(move)
-        if str(board) in tpt["moves"].keys() and tpt["moves"][str(board)][1] == maximizingPlayer:
-            mapped_to_eval.append({"move":move,"eval": tpt["moves"][str(board)][0]})
-        else:
-            not_in_tpt.append({"move":move,"eval":0})
-        board.pop()
-    
-    if maximizingPlayer:
-        mapped_to_eval = sorted(mapped_to_eval, key=lambda x: x["eval"], reverse=True) # max eval first for maximizing
-    else:
-        mapped_to_eval = sorted(mapped_to_eval, key=lambda x: x["eval"], reverse=False) # search by low eval for minimizing
-
-    for move in mapped_to_eval:
-        ordered.append(move["move"])
-    for move in not_in_tpt: # not in tpt
-        ordered.append(move["move"])
-    return ordered
 
 # sort the moves by value of captures...
 # if square is defended -- assume we will lose our capturing piece
@@ -344,8 +310,6 @@ def positionalEvaluation(piece, square):
         return 0
     return 0
 
-# value of piece by position
-
 def play():
    board = chess.Board()
    playerTurn = True # player is white
@@ -377,7 +341,4 @@ def play():
        print("Draw!")
 
 if __name__ == "__main__":
-   #initTP = {"moves": {}}
-   #with open("transpos_table.json", "w") as tpt:
-   #    json.dump(initTP, tpt)
    play()
