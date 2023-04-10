@@ -7,6 +7,14 @@ import json
 # capture move ordering
 # transposition tables
 # iterative deepening + principle variation move ordering
+# grandmaster games opening book
+
+# NEXT:
+# endgame eval
+# push pawns
+# king towards center
+# higher depth in endgame
+# play as white or black
 
 # number of positions to keep in memory before resetting
 MAX_POS = 400000
@@ -40,6 +48,16 @@ king_table = [[10 ,10 ,10 ,-5 ,-5 ,-5 ,30 ,10 ],
               [-15,-15,-15,-15,-15,-15,-15,-15],
               [-15,-15,-15,-15,-15,-15,-15,-15],
               [10 ,10 ,10 ,-5 ,-5 ,-5 ,30 ,10 ]]
+
+endgame_king_table =    [[-10,-10,-10,-10,-10,-10,-10,-10],
+                        [0  ,5  ,10 ,10 ,10 ,10 ,5  ,0  ],
+                        [10 ,15 ,20 ,20 ,20 ,20 ,15 ,10 ],
+                        [10 ,15 ,20 ,20 ,20 ,20 ,15 ,10 ],
+                        [10 ,15 ,20 ,20 ,20 ,20 ,15 ,10 ],
+                        [10 ,15 ,20 ,20 ,20 ,20 ,15 ,10 ],
+                        [0  ,5  ,10 ,10 ,10 ,10 ,5  ,0  ],
+                        [-10,-10,-10,-10,-10,-10,-10,-10]]
+
 
 # queen is good whereever... depends on tactics 
 queen_table = [[0 ,0 ,0 ,0,0 ,0 ,0 ,0 ],
@@ -145,6 +163,10 @@ def getAIMove(board, tpt, moves_list, prev_games):
         return found_existing_line
     print("...no existing line found in dataset")
     
+    # this value needs to be passed down to the evaluation function
+    # also used to set a higher depth when we're in an endgame 
+    isEndgame = len(board.piece_map()) < 12 # we're in an endgame when most pieces are gone 
+
     bestVal = float("inf")
     bestMove = None
     alpha = float("-inf")
@@ -157,11 +179,16 @@ def getAIMove(board, tpt, moves_list, prev_games):
 
     curr_depth = 1
     max_depth = 5
+
+    # higher depth during endgame 
+    if isEndgame:
+        max_depth = max_depth + 2
+    
     curr_time = 0
     max_time = 10 # seconds
     while curr_time < max_time and curr_depth <= max_depth: # iterative deepening ... passing along the principle variation (best move)
         start = time.time()
-        val, move, visited, tpt, tpt_uses = minimax(board, curr_depth, alpha, beta, False, visited, tpt, tpt_uses, bestMove) # ai is black
+        val, move, visited, tpt, tpt_uses = minimax(board, curr_depth, alpha, beta, False, visited, tpt, tpt_uses, bestMove, isEndgame) # ai is black
         end = time.time()
         print("Found: " + str(move) + " at depth: " + str(curr_depth) + " with eval: " + str(val/100))
         curr_time = curr_time + end - start
@@ -178,10 +205,10 @@ def getAIMove(board, tpt, moves_list, prev_games):
     print("I got to depth: " + str(curr_depth-1) + " in: " + str(curr_time) + " seconds!")
     return bestMove
 
-def minimax(board, depth, alpha, beta, maximizingPlayer, visited, tpt, tpt_uses, bmove):
+def minimax(board, depth, alpha, beta, maximizingPlayer, visited, tpt, tpt_uses, bmove, isEndgame):
 
     if depth == 0 or board.is_game_over():
-        eval = evaluate(board)
+        eval = evaluate(board, isEndgame)
         return eval, None, visited, tpt, tpt_uses
 
     if maximizingPlayer:
@@ -206,7 +233,7 @@ def minimax(board, depth, alpha, beta, maximizingPlayer, visited, tpt, tpt_uses,
                 visited = visited + 1
                 continue
 
-            eval, mv, visited, tpt, tpt_uses = minimax(board, depth -1, alpha, beta, False, visited, tpt, tpt_uses, bmove)
+            eval, mv, visited, tpt, tpt_uses = minimax(board, depth -1, alpha, beta, False, visited, tpt, tpt_uses, bmove, isEndgame)
 
             if str_board not in tpt["moves"].keys():
                 tpt["moves"][str_board] = [eval, maximizingPlayer, depth]
@@ -245,7 +272,7 @@ def minimax(board, depth, alpha, beta, maximizingPlayer, visited, tpt, tpt_uses,
                 visited = visited + 1
                 continue
 
-            eval, mv, visited, tpt, tpt_uses = minimax(board, depth -1, alpha, beta, True, visited, tpt, tpt_uses, bmove)
+            eval, mv, visited, tpt, tpt_uses = minimax(board, depth -1, alpha, beta, True, visited, tpt, tpt_uses, bmove, isEndgame)
 
             if str_board not in tpt["moves"].keys():
                 tpt["moves"][str_board] = [eval, maximizingPlayer, depth]
@@ -305,7 +332,7 @@ def getValue(piece):
         return 300
     return 100 # pawn
 
-def evaluate(board):
+def evaluate(board, isEndgame):
     white_score = 0
     black_score = 0
     if board.result() == "1-0": # white wins
@@ -314,31 +341,34 @@ def evaluate(board):
         return float("-inf")
     if board.is_game_over(): # draw
         return 0
-
+     
     for square in chess.SQUARES:
         piece = board.piece_at(square)
         if piece is not None:
             if piece.symbol() == piece.symbol().upper():
                 white_score = white_score + getValue(piece.symbol().lower())
-                white_score = white_score + positionalEvaluation(piece.symbol().lower(), square, True)
+                white_score = white_score + positionalEvaluation(piece.symbol().lower(), square, True, isEndgame)
             else:
                 black_score = black_score + getValue(piece.symbol().lower())
-                black_score = black_score + positionalEvaluation(piece.symbol().lower(), square, False)
+                black_score = black_score + positionalEvaluation(piece.symbol().lower(), square, False, isEndgame)
 
     return white_score - black_score + immediateCaptureScore(board)
 
 # value of piece by where it is on the board 
 # if square isnt explicitely mapped... return 0 -- doesn't matter if its on that square
-def positionalEvaluation(piece, square, white):
+def positionalEvaluation(piece, square, white, isEndgame):
     try:
-        if piece == "k":
+        if piece == "k" and isEndgame:
+            return endgame_king_table[7 - int(square/8)][square - 8 * int(square/8)]
+        elif piece == "k" and not isEndgame:
             return king_table[7 - int(square/8)][square - 8 * int(square/8)]
+        
         if piece == "q":
             return queen_table[7 - int(square/8)][square - 8 * int(square/8)]
         if piece == "r" and white:
             return white_rook_table[7 - int(square/8)][square - 8 * int(square/8)]
         if piece == "r" and not white:
-           return black_rook_table[7 - int(square/8)][square - 8 * int(square/8)]
+            return black_rook_table[7 - int(square/8)][square - 8 * int(square/8)]
         if piece == "n":
             return knight_table[7 - int(square/8)][square - 8 * int(square/8)]
         if piece == "b":
