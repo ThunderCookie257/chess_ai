@@ -1,5 +1,4 @@
 import chess
-import json
 import time
 
 # concepts implemented
@@ -33,14 +32,14 @@ MAX_POS = 400000
 # 10 = advantage
 # 20 = should be played 
 # king stays near edge of board
-king_table = [[10,10,10,-5,-5,-5,20,10],
-              [-5,-5,-5,-5,-5,-5,-5,-5],
-              [-5,-5,-5,-5,-5,-5,-5,-5],
-              [-5,-5,-5,-5,-5,-5,-5,-5],
-              [-5,-5,-5,-5,-5,-5,-5,-5],
-              [-5,-5,-5,-5,-5,-5,-5,-5],
-              [-5,-5,-5,-5,-5,-5,-5,-5],
-              [10,10,10,-5,-5,-5,20,10]]
+king_table = [[10 ,10 ,10 ,-5 ,-5 ,-5 ,30 ,10 ],
+              [-15,-15,-15,-15,-15,-15,-15,-15],
+              [-15,-15,-15,-15,-15,-15,-15,-15],
+              [-15,-15,-15,-15,-15,-15,-15,-15],
+              [-15,-15,-15,-15,-15,-15,-15,-15],
+              [-15,-15,-15,-15,-15,-15,-15,-15],
+              [-15,-15,-15,-15,-15,-15,-15,-15],
+              [10 ,10 ,10 ,-5 ,-5 ,-5 ,30 ,10 ]]
 
 # queen is good whereever... depends on tactics 
 queen_table = [[0 ,0 ,0 ,0,0 ,0 ,0 ,0 ],
@@ -54,61 +53,61 @@ queen_table = [[0 ,0 ,0 ,0,0 ,0 ,0 ,0 ],
 
 # rooks on the second or seventh rank are good 
 white_rook_table = [[0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
-                    [10,20,20,20,20,20,20,10],
+                    [10,20,20,30,30,20,20,10],
                     [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
                     [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
                     [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
                     [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
                     [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
-                    [0 ,-5,0 ,10,10,0 ,-5,0 ]]
+                    [-5,-5,0 ,20,20,10,-5,-5]]
 
-black_rook_table = [[0 ,-5,0 ,10,10,0 ,-5,0 ],
+black_rook_table = [[-5,-5,0 ,20,20,10,-5,-5],
                     [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
                     [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
                     [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
                     [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
                     [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
-                    [10,20,20,20,20,20,20,10],
+                    [10,20,20,30,30,20,20,10],
                     [0 ,-5,0 ,0 ,0 ,0 ,-5,0 ]]
 
 # knights better towards the center
 # disadvantage towards the sides
-knight_table = [[-10,0  ,-10,-10,-10,-10,0  ,-10],
+knight_table = [[-10,-10,-10,-10,-10,-10,-10,-10],
               [-10,0  ,0  ,0  ,0  ,0  ,0  ,-10],
               [-10,5  ,20 ,10 ,10 ,20 ,5  ,-10],
               [-10,5  ,10 ,10 ,10 ,10 ,5  ,-10],
               [-10,5  ,10 ,10 ,10 ,10 ,5  ,-10],
               [-10,5  ,20 ,10 ,10 ,20 ,5  ,-10],
               [-10,5  ,0  ,0  ,0  ,0  ,5  ,-10],
-              [-10,0  ,-10,-10,-10,-10,0  ,-10]]
+              [-10,-10,-10,-10,-10,-10,-10,-10]]
 
 # bishops better along longer diagonals
 # disadvanatge towards the sides
 bishop_table =[[-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ],
-              [-5 ,10  ,0  ,5  ,5  ,0  ,10  ,-5 ],
+              [-5 ,10  ,0  ,10,10,0  ,10  ,-5 ],
               [-5 ,0  ,0  ,5  ,5  ,0  ,0  ,-5 ],
               [-5 ,5  ,20 ,0  ,0  ,20 ,5  ,-5 ],
               [-5 ,5  ,20 ,0  ,0  ,20 ,5  ,-5 ],
               [-5 ,0  ,0  ,5  ,5  ,0  ,0  ,-5 ],
-              [-5 ,10  ,0  ,5  ,5  ,0  ,10  ,-5 ],
+              [-5 ,10  ,0  ,10,1 ,0  ,10  ,-5 ],
               [-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ,-5 ]]
 
 # pawns good towards the center 
 white_pawn_table = [[0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
                     [60,60,60,60,60,60,60,60],
-                    [0 ,0 ,0 ,50,50,0 ,0 ,0 ],
-                    [0 ,0 ,20,40,40,20,0 ,0 ],
+                    [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
+                    [0 ,0 ,20,0 ,0 ,20,0 ,0 ],
                     [0 ,0 ,10,30,30,10,0 ,0 ],
                     [0 ,0 ,0 ,5 ,5 ,0 ,0 ,0 ],
-                    [0 ,5 ,0 ,-5,-5,0 ,5 ,0 ],
+                    [0 ,5 ,0 ,-10,-10,0 ,5 ,0 ],
                     [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ]]
 
 black_pawn_table = [[0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
-                    [0 ,5 ,0 ,-5,-5,0 ,5 ,0 ],
+                    [0 ,5 ,0 ,-10,-10,0 ,5 ,0 ],
                     [0 ,0 ,0 ,5 ,5 ,0 ,0 ,0 ],
                     [0 ,0 ,10,30,30,10,0 ,0 ],
-                    [0 ,0 ,20,40,40,20,0 ,0 ],
-                    [0 ,0 ,0 ,50,50,0 ,0 ,0 ],
+                    [0 ,0 ,20,0 ,0 ,20,0 ,0 ],
+                    [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ],
                     [60,60,60,60,60,60,60,60],
                     [0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ]]
 
@@ -138,7 +137,7 @@ def getAIMove(board, tpt):
         tpt = {"moves": {}}
 
     curr_depth = 1
-    max_depth = 5
+    max_depth = 4
     curr_time = 0
     max_time = 10 # seconds
     while curr_time < max_time and curr_depth <= max_depth: # iterative deepening ... passing along the principle variation (best move)
@@ -334,7 +333,8 @@ def positionalEvaluation(piece, square, white):
         return 0
     return 0
 
-# returns a score that reflects the value of immediate captures from the current position
+# returns a score that reflects the value of immediate captures from the current position for UNDEFENDED PIECES
+# need to only consider undefended pieces here as a safety mechanism to not hang anything 
 # negative for black
 def immediateCaptureScore(board):
     score = 0
@@ -345,10 +345,10 @@ def immediateCaptureScore(board):
         ending_piece = board.piece_at(chess.parse_square(ending))
         if ending_piece: # capture
             value = 0
-            if board.is_attacked_by(not starting_piece.color, chess.parse_square(ending)): # opponent defends
-                value = getValue(ending_piece.symbol()) - getValue(starting_piece.symbol()) # assume we lose our piece
-            else:
-                value = getValue(ending_piece.symbol()) # undefened... we win a piece
+            # if board.is_attacked_by(not starting_piece.color, chess.parse_square(ending)): # opponent defends
+            #     value = getValue(ending_piece.symbol()) - getValue(starting_piece.symbol()) # assume we lose our piece
+            # else:
+            value = getValue(ending_piece.symbol()) # undefened... we win a piece
             score = score + value
     
     if board.turn == chess.WHITE:
