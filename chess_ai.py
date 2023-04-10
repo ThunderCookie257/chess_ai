@@ -1,6 +1,6 @@
 import chess
 import time
-
+import json
 # concepts implemented
 # minimax
 # alpha beta pruning
@@ -124,8 +124,27 @@ def getPlayerMove():
         return None
 
 
+def getLine(moves_list, prev_games):
+    print("looking for existing line...")
+    for game in prev_games:
+        for i in range(len(moves_list)):
+            if i >= len(game):
+                break
+            if moves_list[i] != game[i]: #lines dont match
+                break
+            if i == len(moves_list) -1:
+                return game[i + 1]
+    return None
+
 # AI is playing black... will try to find the move that minimizes bestVal
-def getAIMove(board, tpt):
+def getAIMove(board, tpt, moves_list, prev_games):
+
+    found_existing_line = getLine(moves_list, prev_games)
+    if found_existing_line:
+        print("...found this move from a line: " + str(found_existing_line))
+        return found_existing_line
+    print("...no existing line found in dataset")
+    
     bestVal = float("inf")
     bestMove = None
     alpha = float("-inf")
@@ -137,7 +156,7 @@ def getAIMove(board, tpt):
         tpt = {"moves": {}}
 
     curr_depth = 1
-    max_depth = 4
+    max_depth = 5
     curr_time = 0
     max_time = 10 # seconds
     while curr_time < max_time and curr_depth <= max_depth: # iterative deepening ... passing along the principle variation (best move)
@@ -355,22 +374,40 @@ def immediateCaptureScore(board):
         return score
     return 0 - score
 
+
+def getPrevGames():
+    games = []
+    with open("games.json", "r") as g:
+        games_dict = json.load(g)
+        games = games_dict["games"]
+
+    return games
+
 def play():
    board = chess.Board()
    playerTurn = True # player is white
    TPT = {"moves" : {}}
+
+   prevGames = getPrevGames() # database of GM games
+   moves_list = [] # moves played so far 
+
    while not board.is_game_over():
        drawBoard(board)
        if playerTurn:
            move = getPlayerMove()
            playerTurn = False
        else:
-           move = getAIMove(board, TPT)
+           move = getAIMove(board, TPT, moves_list, prevGames)
            playerTurn = True
 
+       if type(move) == str:
+           move = board.parse_san(move)
+           move = move.uci()
+           move = chess.Move.from_uci(move)
 
        if move in board.legal_moves:
-           board.push(move)
+            moves_list.append(str(board.san(move)))
+            board.push(move)
        else:
            print("Illegal move. Please try again.")
            playerTurn = True
